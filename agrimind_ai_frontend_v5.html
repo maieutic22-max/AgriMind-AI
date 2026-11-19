@@ -227,8 +227,495 @@ function planning(){return `${pageHead('Crop planning','Explore crop options and
 function showPlanResult(){$('#planResult').innerHTML=`<div class="result"><b>Sample exploration result</b><br>Maize, groundnut and pulses are shown as example options for this prototype. A production recommendation must use validated local data, season, soil test, water access and model confidence.<br><small>Demo only · No real prediction performed</small></div>`}
 function operations(){return `${pageHead('Farm operations','Coordinate irrigation, crop health checks, inputs and field activities.')}<div class="module-grid">${[['💧','Smart irrigation','Plan watering using soil moisture, crop stage and weather context.'],['🍃','Crop health & disease','Record symptoms and analyse crop images using a validated model.'],['🐛','Pest early warning','Review risk signals and field scouting observations.'],['🧪','Input management','Track seed, fertiliser and pesticide use with application history.'],['📅','Activity calendar','View upcoming tasks and record completed field activities.'],['📷','Field observations','Capture photos, notes and geotagged observations.']].map(m=>`<div class="module-card" onclick="openModal('${m[1]}','${m[2]}')"><div class="ficon">${m[0]}</div><h3>${m[1]}</h3><p>${m[2]}</p><small>Open module →</small></div>`).join('')}</div><div class="panel" style="margin-top:15px"><div class="panel-head"><h3>Upcoming field activities</h3><span>Sample tasks</span></div>${DEMO_DATA.tasks.map(t=>`<div class="alert"><div class="alert-icon">✓</div><div style="flex:1"><strong>${t.title}</strong><p>${t.date}</p></div><span class="status">${t.status}</span></div>`).join('')}</div>`}
 function weather(){return `${pageHead('Weather & risk','Understand weather conditions and monitor potential farm risks.')}<div class="stats">${stat('CURRENT TEMP','28°C','Illustrative weather','i-cloud')}${stat('RAINFALL','12 mm','Sample weekly total','i-droplet')}${stat('HUMIDITY','68%','Sample reading','i-cloud')}${stat('RISK LEVEL','Moderate','Illustrative risk status','i-shield')}</div><div class="split"><div class="panel"><div class="panel-head"><h3>Weather outlook</h3><span>Dharwad · Sample forecast</span></div><div class="weather-days" style="border:0">${['Today','Wed','Thu','Fri','Sat'].map((d,i)=>`<div>${d}<b>${['⛅','🌦️','☁️','☀️','☀️'][i]}</b>${[28,27,26,30,29][i]}°</div>`).join('')}</div><p class="muted" style="font-size:10px;margin-top:20px">Connect a reliable weather provider for live forecasts and timestamped updates.</p></div><div class="panel"><div class="panel-head"><h3>Risk watchlist</h3><span>Illustrative alerts</span></div><div class="alert"><div class="alert-icon">🌧️</div><div><strong>Rainfall watch</strong><p>Review field drainage before heavy rainfall events.</p></div></div><div class="alert"><div class="alert-icon">🐛</div><div><strong>Pest scouting reminder</strong><p>Check crop leaves and record observations regularly.</p></div></div><div class="alert"><div class="alert-icon">🌡️</div><div><strong>Heat stress awareness</strong><p>Review crop stage and irrigation needs during hot periods.</p></div></div></div></div>`}
-function finance(){return `${pageHead('Finance & profitability','Track costs, income and possible season outcomes.')}<div class="stats">${stat('TOTAL EXPENSES','₹68,400','Illustrative ledger','i-wallet')}${stat('EST. REVENUE','₹1,92,000','Sample estimate','i-chart')}${stat('EST. NET PROFIT','₹1,23,600','Not a guaranteed return','i-chart')}${stat('COST PER ACRE','₹8,047','Sample calculation','i-sprout')}</div><div class="split"><div class="panel"><div class="panel-head"><h3>Profitability simulator</h3><span>Interactive sample calculator</span></div><div class="field"><label>Expected yield (quintals)</label><input id="yieldInput" type="number" value="80" min="0"></div><div class="field"><label>Expected selling price (₹ / quintal)</label><input id="priceInput" type="number" value="2400" min="0"></div><div class="field"><label>Total estimated cost (₹)</label><input id="costInput" type="number" value="68400" min="0"></div><button class="btn btn-primary" onclick="calculateProfit()">Calculate scenario →</button><div id="profitResult" class="result">Adjust the sample inputs and calculate a scenario. This is not a price or yield forecast.</div></div><div class="panel"><div class="panel-head"><h3>Expense breakdown</h3><span>Demo values</span></div>${[['Seeds & planting','₹12,000',18],['Fertiliser & inputs','₹20,400',30],['Labour','₹18,000',26],['Irrigation & energy','₹10,000',15],['Other','₹8,000',11]].map(x=>`<div style="margin:15px 0"><div style="display:flex;justify-content:space-between;font-size:11px"><b>${x[0]}</b><span>${x[1]}</span></div><div style="height:7px;background:#edf1e9;border-radius:9px;margin-top:8px"><div style="height:100%;width:${x[2]}%;background:#83a96c;border-radius:9px"></div></div></div>`).join('')}</div></div>`}
-function calculateProfit(){let y=Number($('#yieldInput').value),p=Number($('#priceInput').value),c=Number($('#costInput').value);if([y,p,c].some(v=>v<0||!Number.isFinite(v))){toast('Enter valid non-negative values.');return}let revenue=y*p,net=revenue-c;$('#profitResult').innerHTML=`<b>Illustrative scenario</b><br>Estimated gross revenue: <b>₹${revenue.toLocaleString('en-IN')}</b><br>Estimated net before unlisted costs: <b style="color:${net>=0?'#4e7c42':'#b65b4c'}">₹${net.toLocaleString('en-IN')}</b><br><small>Calculated from your inputs only. Excludes unknown costs, losses, fees and price uncertainty.</small>`}
+function finance(){
+  const totInc = V5.incomes.reduce((s,i)=>s+Number(i.amount),0);
+  const totExp = V5.expenses.reduce((s,e)=>s+Number(e.amount),0);
+  const totLoans = V5.loans.reduce((s,l)=>s+Number(l.amount),0);
+  const totRepaid = V5.loans.reduce((s,l)=>s+Number(l.repaid||0),0);
+  const outLoans = Math.max(0, totLoans - totRepaid);
+  const availBal = totInc - totExp;
+  const tab = V5.financeTab || 'overview';
+
+  let subcontent = '';
+
+  if (tab === 'overview') {
+    subcontent = `
+    <div class="split" style="margin-top:16px">
+      <div class="panel">
+        <div class="panel-head"><div><h3>Operating Expenses by Category</h3><span>Seeds, fertilisers, labour, equipment & transit</span></div><span class="tag">D19 Ledger</span></div>
+        <div class="twin-bars" style="margin-top:12px">
+          ${[['Seeds', V5.expenses.filter(e=>e.category==='Seeds').reduce((s,e)=>s+e.amount,0)],
+             ['Fertilisers', V5.expenses.filter(e=>e.category==='Fertilisers').reduce((s,e)=>s+e.amount,0)],
+             ['Labour', V5.expenses.filter(e=>e.category==='Labour').reduce((s,e)=>s+e.amount,0)],
+             ['Equipment', V5.expenses.filter(e=>e.category==='Equipment').reduce((s,e)=>s+e.amount,0)],
+             ['Transportation', V5.expenses.filter(e=>e.category==='Transportation').reduce((s,e)=>s+e.amount,0)]
+            ].map(x=>`<div class="twin-bar-row"><span>${x[0]}</span><div><i style="width:${totExp>0?(x[1]/totExp*100):0}%"></i></div><small>${v5Money(x[1])}</small></div>`).join('')}
+        </div>
+        <div style="display:flex;gap:10px;margin-top:20px">
+          <button class="btn btn-primary" onclick="v5AddIncomePrompt()">＋ Add Income</button>
+          <button class="btn btn-soft" onclick="v5AddExpensePrompt()">＋ Add Expense</button>
+          <button class="btn btn-ghost" onclick="v5AddLoanPrompt()">＋ Record Loan</button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>Profitability simulator</h3><span>Interactive sample calculator</span></div>
+        <div class="field"><label>Expected yield (quintals)</label><input id="yieldInput" type="number" value="80" min="0"></div>
+        <div class="field"><label>Expected selling price (₹ / quintal)</label><input id="priceInput" type="number" value="2400" min="0"></div>
+        <div class="field"><label>Total estimated cost (₹)</label><input id="costInput" type="number" value="${totExp}" min="0"></div>
+        <button class="btn btn-primary" onclick="calculateProfit()">Calculate scenario →</button>
+        <div id="profitResult" class="result">Adjust the inputs and calculate scenario.</div>
+      </div>
+    </div>`;
+  } else if (tab === 'income') {
+    subcontent = `
+    <div class="panel" style="margin-top:16px">
+      <div class="panel-head">
+        <div><h3>Farm Income Records</h3><span>${V5.incomes.length} sales and subsidy transactions recorded</span></div>
+        <button class="btn btn-primary" onclick="v5AddIncomePrompt()">＋ Add Income Record</button>
+      </div>
+      <table class="table" style="margin-top:10px">
+        <thead><tr><th>DATE</th><th>SOURCE OF INCOME</th><th>BUYER / AGENCY</th><th>PAYMENT MODE</th><th>AMOUNT</th><th>ACTION</th></tr></thead>
+        <tbody>
+          ${V5.incomes.map((inc, i)=>`
+            <tr>
+              <td><b>${inc.date}</b></td>
+              <td>${inc.source}<br><small class="muted">${inc.desc||''}</small></td>
+              <td>${inc.buyer||'Direct'}</td>
+              <td><span class="tag">${inc.mode||'Cash'}</span></td>
+              <td style="color:#3e7845;font-weight:800">+${v5Money(inc.amount)}</td>
+              <td><button class="iconbtn" style="width:28px;height:28px" onclick="v5DeleteIncome(${i})" title="Delete">×</button></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  } else if (tab === 'expenses') {
+    const cats = ['All', 'Seeds', 'Fertilisers', 'Labour', 'Equipment', 'Transportation'];
+    const curCat = V5.expenseFilter || 'All';
+    const filtered = V5.expenses.filter(e => curCat === 'All' || e.category === curCat);
+    subcontent = `
+    <div class="panel" style="margin-top:16px">
+      <div class="panel-head">
+        <div><h3>Farm Expense Records</h3><span>Categorized inputs, wages, machinery and logistics</span></div>
+        <button class="btn btn-primary" onclick="v5AddExpensePrompt()">＋ Add Expense Record</button>
+      </div>
+      <div class="twin-tabs" style="margin:12px 0">
+        ${cats.map(c=>`<button class="${c===curCat?'active':''}" onclick="V5.expenseFilter='${c}';renderPage('finance')">${c}</button>`).join('')}
+      </div>
+      <table class="table">
+        <thead><tr><th>DATE</th><th>CATEGORY</th><th>DESCRIPTION</th><th>VENDOR / WORKER</th><th>MODE</th><th>AMOUNT</th><th>ACTION</th></tr></thead>
+        <tbody>
+          ${filtered.map((exp, i)=>`
+            <tr>
+              <td><b>${exp.date}</b></td>
+              <td><span class="tag">${exp.category}</span></td>
+              <td>${exp.desc||exp.category}</td>
+              <td>${exp.vendor||'Direct'}</td>
+              <td>${exp.mode||'Cash'}</td>
+              <td style="color:#b35346;font-weight:800">-${v5Money(exp.amount)}</td>
+              <td><button class="iconbtn" style="width:28px;height:28px" onclick="v5DeleteExpense(${i})" title="Delete">×</button></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  } else if (tab === 'loans') {
+    subcontent = `
+    <div class="panel" style="margin-top:16px">
+      <div class="panel-head">
+        <div><h3>Loan & Repayment Management</h3><span>Credit facilities, outstanding debt and repayment amortisation</span></div>
+        <button class="btn btn-primary" onclick="v5AddLoanPrompt()">＋ Record New Loan</button>
+      </div>
+      <div style="display:grid;gap:14px;margin-top:14px">
+        ${V5.loans.map((loan, i)=>{
+          const repaid = Number(loan.repaid||0);
+          const pending = Math.max(0, loan.amount - repaid);
+          const pct = Math.min(100, Math.round(repaid / loan.amount * 100));
+          const isDone = pending <= 0;
+          return `
+          <div style="border:1px solid var(--line);border-radius:14px;padding:16px;background:#fbfcf9">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <b style="font-size:14px">${loan.lender}</b>
+                <span class="tag" style="margin-left:8px">${isDone?'REPAID':'ACTIVE'}</span>
+                <p class="muted" style="font-size:11px;margin:3px 0 0">${loan.purpose||'Working capital'} · ${loan.rate}% interest</p>
+              </div>
+              <div style="display:flex;gap:8px">
+                ${!isDone ? `<button class="btn btn-soft" style="padding:6px 12px;font-size:11px" onclick="v5RecordRepaymentPrompt(${i})">Record Repayment</button>` : ''}
+                <button class="iconbtn" style="width:28px;height:28px" onclick="v5DeleteLoan(${i})">×</button>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;margin-top:12px">
+              <span>Principal: <b>${v5Money(loan.amount)}</b></span>
+              <span>Repaid: <b style="color:#3e7845">${v5Money(repaid)}</b></span>
+              <span>Pending: <b style="color:#b57943">${v5Money(pending)}</b></span>
+            </div>
+            <div style="height:8px;background:#e9ece5;border-radius:10px;margin-top:6px;overflow:hidden">
+              <div style="height:100%;width:${pct}%;background:#629352;border-radius:10px"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px">
+              <span>Disbursed: ${loan.date}</span>
+              <span>${pct}% Repaid</span>
+              <span>Due: ${loan.due||'Annual'}</span>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  } else if (tab === 'history') {
+    const rawTx = [
+      ...V5.incomes.map(i=>({type:'INCOME', date:i.date, cat:i.source, desc:i.desc, party:i.buyer, amount:i.amount, mode:i.mode})),
+      ...V5.expenses.map(e=>({type:'EXPENSE', date:e.date, cat:e.category, desc:e.desc, party:e.vendor, amount:e.amount, mode:e.mode}))
+    ].sort((a,b)=>a.date < b.date ? 1 : -1);
+
+    const q = (V5.txSearch||'').toLowerCase();
+    const ttype = V5.txType || 'ALL';
+    const txFiltered = rawTx.filter(t=>{
+      const matchType = ttype === 'ALL' || t.type === ttype;
+      const matchSearch = t.cat.toLowerCase().includes(q) || (t.desc&&t.desc.toLowerCase().includes(q)) || (t.party&&t.party.toLowerCase().includes(q));
+      return matchType && matchSearch;
+    });
+
+    subcontent = `
+    <div class="panel" style="margin-top:16px">
+      <div class="panel-head">
+        <div><h3>Universal Transaction History</h3><span>Unified chronological ledger with search and filters</span></div>
+        <div style="display:flex;gap:8px">
+          <input id="v5TxSearch" placeholder="Search transactions..." value="${V5.txSearch||''}" oninput="V5.txSearch=this.value;renderPage('finance')" style="padding:6px 12px;border:1px solid var(--line);border-radius:9px;font-size:11px">
+          <select onchange="V5.txType=this.value;renderPage('finance')" style="padding:6px 10px;border:1px solid var(--line);border-radius:9px;font-size:11px">
+            <option value="ALL" ${ttype==='ALL'?'selected':''}>All Types</option>
+            <option value="INCOME" ${ttype==='INCOME'?'selected':''}>Incomes Only</option>
+            <option value="EXPENSE" ${ttype==='EXPENSE'?'selected':''}>Expenses Only</option>
+          </select>
+        </div>
+      </div>
+      <table class="table" style="margin-top:10px">
+        <thead><tr><th>TYPE</th><th>DATE</th><th>CATEGORY / SOURCE</th><th>PARTY</th><th>PAYMENT MODE</th><th>AMOUNT</th></tr></thead>
+        <tbody>
+          ${txFiltered.map(t=>`
+            <tr>
+              <td><span class="tag" style="background:${t.type==='INCOME'?'#e7f4e4':'#f9e8e6'};color:${t.type==='INCOME'?'#386c3d':'#a34336'}">${t.type}</span></td>
+              <td><b>${t.date}</b></td>
+              <td>${t.cat}<br><small class="muted">${t.desc||''}</small></td>
+              <td>${t.party||'—'}</td>
+              <td>${t.mode||'Cash'}</td>
+              <td style="font-weight:800;color:${t.type==='INCOME'?'#386c3d':'#a34336'}">${t.type==='INCOME'?'+':'-'}${v5Money(t.amount)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  } else if (tab === 'simulator') {
+    const crops = {
+      'Hybrid Maize': { yield: 24, price: 2225, seed: 3200, fert: 5400, pest: 2100, lab: 6500, irr: 2200, mach: 4200, oth: 1400 },
+      'Soybean (JS-335)': { yield: 12, price: 4892, seed: 3800, fert: 4200, pest: 2800, lab: 5800, irr: 1500, mach: 3900, oth: 1200 },
+      'Sharbati Wheat': { yield: 20, price: 2425, seed: 2600, fert: 4800, pest: 1500, lab: 5000, irr: 2800, mach: 4500, oth: 1100 },
+      'Bt Cotton': { yield: 10, price: 7521, seed: 4200, fert: 6500, pest: 5200, lab: 9500, irr: 3000, mach: 4800, oth: 1800 },
+      'Groundnut': { yield: 11, price: 6783, seed: 5500, fert: 4100, pest: 2200, lab: 6200, irr: 2000, mach: 3800, oth: 1400 },
+      'Hybrid Tomato': { yield: 120, price: 1600, seed: 6000, fert: 9500, pest: 7500, lab: 14000, irr: 4000, mach: 5500, oth: 3500 }
+    };
+    const selCrop = V5.simCrop || 'Hybrid Maize';
+    const cData = crops[selCrop] || crops['Hybrid Maize'];
+    const area = V5.simArea || 3.0;
+
+    subcontent = `
+    <div class="panel" style="margin-top:16px;background:linear-gradient(135deg,#f4faf2 0%,#ffffff 100%);border:1px solid #c2e2be">
+      <div class="panel-head">
+        <div>
+          <h3 style="color:#214424;display:flex;align-items:center;gap:6px">📊 Farm Profitability & ROI Simulator (Deliverable D20)</h3>
+          <span style="color:#4e7c42">Simulate single crop return or compare multiple crops before sowing</span>
+        </div>
+        <span class="tag" style="background:#e0f2dc;color:#28632c">Dynamic Economic Engine</span>
+      </div>
+
+      <div class="split" style="margin-top:16px">
+        <!-- Input Form -->
+        <div style="background:#ffffff;border:1px solid #d5e8d2;border-radius:14px;padding:16px">
+          <div style="font-size:12px;font-weight:800;color:#204022;margin-bottom:12px">① CROP & FIELD PARAMETERS</div>
+          <div class="field">
+            <label>Select Target Crop</label>
+            <select id="v5SimCropSel" onchange="v5ApplyCropPreset(this.value)" style="width:100%;padding:8px 12px;border:1px solid var(--line);border-radius:10px;font-weight:700">
+              ${Object.keys(crops).map(c => `<option value="${c}" ${c===selCrop?'selected':''}>${c}</option>`).join('')}
+            </select>
+          </div>
+          <div class="field" style="margin-top:10px">
+            <div style="display:flex;justify-content:space-between"><label>Cultivated Area (Acres)</label><b id="v5SimAreaLbl">${area} Acres</b></div>
+            <input id="v5SimArea" type="range" min="0.5" max="20" step="0.5" value="${area}" oninput="v5CalcLive()" style="width:100%;accent-color:#386c3d">
+          </div>
+
+          <div style="font-size:12px;font-weight:800;color:#204022;margin:16px 0 8px">② OPERATIONAL INPUT COSTS (₹ / Acre)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div class="field"><label>🌱 Seeds</label><input id="v5CostSeed" type="number" value="${cData.seed}" oninput="v5CalcLive()"></div>
+            <div class="field"><label>🧪 Fertilizers</label><input id="v5CostFert" type="number" value="${cData.fert}" oninput="v5CalcLive()"></div>
+            <div class="field"><label>🛡️ Pesticides</label><input id="v5CostPest" type="number" value="${cData.pest}" oninput="v5CalcLive()"></div>
+            <div class="field"><label>👥 Labour</label><input id="v5CostLab" type="number" value="${cData.lab}" oninput="v5CalcLive()"></div>
+            <div class="field"><label>💧 Irrigation</label><input id="v5CostIrr" type="number" value="${cData.irr}" oninput="v5CalcLive()"></div>
+            <div class="field"><label>🚜 Machinery</label><input id="v5CostMach" type="number" value="${cData.mach}" oninput="v5CalcLive()"></div>
+          </div>
+          <div class="field" style="margin-top:8px"><label>📦 Transport & Other</label><input id="v5CostOth" type="number" value="${cData.oth}" oninput="v5CalcLive()"></div>
+
+          <div style="font-size:12px;font-weight:800;color:#204022;margin:16px 0 8px">③ PRODUCTION & MANDI PRICE</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div class="field"><label>Yield (qtl / acre)</label><input id="v5SimYield" type="number" step="0.5" value="${cData.yield}" oninput="v5CalcLive()"></div>
+            <div class="field"><label>Mandi Price (₹ / qtl)</label><input id="v5SimPrice" type="number" value="${cData.price}" oninput="v5CalcLive()"></div>
+          </div>
+        </div>
+
+        <!-- Calculated Live KPI Results -->
+        <div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="v5KpiGrid">
+            <div class="stat"><div class="stat-top"><span>TOTAL INVESTMENT</span></div><div class="stat-num" style="color:#b35346" id="v5KpiCost">₹0</div><div class="trend" id="v5KpiCostAcre">₹0 / acre</div></div>
+            <div class="stat"><div class="stat-top"><span>EXPECTED REVENUE</span></div><div class="stat-num" style="color:#204022" id="v5KpiRev">₹0</div><div class="trend" id="v5KpiRevAcre">₹0 / acre</div></div>
+            <div class="stat" style="background:#eaf5e8;border-color:#bfe0bc"><div class="stat-top"><span>NET PROFIT / LOSS</span></div><div class="stat-num" style="color:#2d6932" id="v5KpiProfit">₹0</div><div class="trend" id="v5KpiProfitAcre">₹0 / acre</div></div>
+            <div class="stat"><div class="stat-top"><span>RETURN ON INV. (ROI)</span></div><div class="stat-num" style="color:#2d6932" id="v5KpiRoi">0%</div><div class="trend">On invested capital</div></div>
+          </div>
+
+          <div class="panel" style="margin-top:12px;background:#ffffff">
+            <div class="panel-head"><h3>Breakeven & Safety Buffer</h3><span class="tag">Downside Protection</span></div>
+            <div style="font-size:12px;line-height:1.7;margin-top:8px">
+              <div>Breakeven Yield: <b id="v5BeYield">0 qtl/acre</b> <small class="muted">(Minimum output needed to cover costs)</small></div>
+              <div>Breakeven Mandi Price: <b id="v5BePrice">₹0 / qtl</b> <small class="muted">(Minimum price needed to avoid loss)</small></div>
+            </div>
+            <div style="margin-top:12px;background:#fbfcf9;border:1px solid #d5e8d2;border-radius:10px;padding:12px">
+              <b style="color:#204022;font-size:11px">💡 AgriMind Economics Takeaway:</b>
+              <p id="v5Takeaway" style="font-size:11px;color:#555;margin:4px 0 0">Calculating optimal planting scenario...</p>
+            </div>
+          </div>
+
+          <div class="panel" style="margin-top:12px;background:#ffffff">
+            <div class="panel-head"><h3>Side-by-Side Crop Comparison</h3><span>3 Acres Standard Baseline</span></div>
+            <table class="table" style="font-size:11px;margin-top:8px">
+              <thead><tr><th>CROP</th><th>INVESTMENT</th><th>REVENUE</th><th>NET PROFIT</th><th>ROI</th></tr></thead>
+              <tbody>
+                <tr><td><b>Hybrid Maize</b></td><td style="color:#b35346">₹75,000</td><td>₹1,60,200</td><td style="color:#2d6932;font-weight:800">₹85,200</td><td><b>113.6%</b></td></tr>
+                <tr><td><b>Soybean JS-335</b></td><td style="color:#b35346">₹69,600</td><td>₹1,76,112</td><td style="color:#2d6932;font-weight:800">₹1,06,512</td><td><b>153.0%</b></td></tr>
+                <tr><td><b>Groundnut</b></td><td style="color:#b35346">₹76,200</td><td>₹2,23,839</td><td style="color:#2d6932;font-weight:800">₹1,47,639</td><td><b>193.8%</b></td></tr>
+                <tr><td><b>Sharbati Wheat</b></td><td style="color:#b35346">₹65,100</td><td>₹1,45,500</td><td style="color:#2d6932;font-weight:800">₹80,400</td><td><b>123.5%</b></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  return `${pageHead('Farm Financial Management','Track farm income, expenses, loans, repayments and available balance.')}
+  <div class="stats">
+    ${stat('TOTAL INCOME', v5Money(totInc), 'Crop sales & subsidies', 'i-chart')}
+    ${stat('TOTAL EXPENSES', v5Money(totExp), 'Seeds, inputs & labour', 'i-wallet')}
+    ${stat('OUTSTANDING LOANS', v5Money(outLoans), `${V5.loans.length} active credit lines`, 'i-grid')}
+    ${stat('AVAILABLE BALANCE', v5Money(availBal), availBal>=0?'Cash Surplus':'Cash Deficit', 'i-leaf')}
+  </div>
+  <div class="twin-tabs" style="margin-top:8px">
+    <button class="${tab==='overview'?'active':''}" onclick="V5.financeTab='overview';renderPage('finance')">① Financial Dashboard</button>
+    <button class="${tab==='income'?'active':''}" onclick="V5.financeTab='income';renderPage('finance')">② Income Management (${V5.incomes.length})</button>
+    <button class="${tab==='expenses'?'active':''}" onclick="V5.financeTab='expenses';renderPage('finance')">③ Expense Management (${V5.expenses.length})</button>
+    <button class="${tab==='loans'?'active':''}" onclick="V5.financeTab='loans';renderPage('finance')">④ Loan Management (${V5.loans.length})</button>
+    <button class="${tab==='history'?'active':''}" onclick="V5.financeTab='history';renderPage('finance')">⑤ Transaction History</button>
+    <button class="${tab==='simulator'?'active':''}" onclick="V5.financeTab='simulator';renderPage('finance');setTimeout(v5CalcLive,50)">⑥ Profitability Simulator (D20)</button>
+  </div>
+  ${subcontent}`;
+}
+
+function calculateProfit(){
+  let y=Number($('#yieldInput').value),p=Number($('#priceInput').value),c=Number($('#costInput').value);
+  if([y,p,c].some(v=>v<0||!Number.isFinite(v))){toast('Enter valid non-negative values.');return}
+  let revenue=y*p,net=revenue-c;
+  let roi = c > 0 ? ((net / c) * 100).toFixed(1) : '0';
+  let breakevenPrice = y > 0 ? Math.round(c / y) : 0;
+  $('#profitResult').innerHTML=`<b>Dynamic Crop Profitability Result (Deliverable D20)</b><br>
+  Gross Revenue: <b>₹${revenue.toLocaleString('en-IN')}</b><br>
+  Net Return: <b style="color:${net>=0?'#4e7c42':'#b65b4c'}">₹${net.toLocaleString('en-IN')} (${net >= 0 ? 'Profit' : 'Loss'})</b><br>
+  ROI: <b style="color:${net>=0?'#4e7c42':'#b65b4c'}">${roi}%</b> · Breakeven Price: <b>₹${breakevenPrice.toLocaleString('en-IN')}/qtl</b><br>
+  <small>Fully dynamic simulation synchronized with Member 3 AgriMind Farm Economics engine.</small>`;
+}
+
+function v5ApplyCropPreset(cropName){
+  V5.simCrop = cropName;
+  const crops = {
+    'Hybrid Maize': { yield: 24, price: 2225, seed: 3200, fert: 5400, pest: 2100, lab: 6500, irr: 2200, mach: 4200, oth: 1400 },
+    'Soybean (JS-335)': { yield: 12, price: 4892, seed: 3800, fert: 4200, pest: 2800, lab: 5800, irr: 1500, mach: 3900, oth: 1200 },
+    'Sharbati Wheat': { yield: 20, price: 2425, seed: 2600, fert: 4800, pest: 1500, lab: 5000, irr: 2800, mach: 4500, oth: 1100 },
+    'Bt Cotton': { yield: 10, price: 7521, seed: 4200, fert: 6500, pest: 5200, lab: 9500, irr: 3000, mach: 4800, oth: 1800 },
+    'Groundnut': { yield: 11, price: 6783, seed: 5500, fert: 4100, pest: 2200, lab: 6200, irr: 2000, mach: 3800, oth: 1400 },
+    'Hybrid Tomato': { yield: 120, price: 1600, seed: 6000, fert: 9500, pest: 7500, lab: 14000, irr: 4000, mach: 5500, oth: 3500 }
+  };
+  const d = crops[cropName] || crops['Hybrid Maize'];
+  if($('#v5CostSeed')) $('#v5CostSeed').value = d.seed;
+  if($('#v5CostFert')) $('#v5CostFert').value = d.fert;
+  if($('#v5CostPest')) $('#v5CostPest').value = d.pest;
+  if($('#v5CostLab')) $('#v5CostLab').value = d.lab;
+  if($('#v5CostIrr')) $('#v5CostIrr').value = d.irr;
+  if($('#v5CostMach')) $('#v5CostMach').value = d.mach;
+  if($('#v5CostOth')) $('#v5CostOth').value = d.oth;
+  if($('#v5SimYield')) $('#v5SimYield').value = d.yield;
+  if($('#v5SimPrice')) $('#v5SimPrice').value = d.price;
+  v5CalcLive();
+}
+
+function v5CalcLive(){
+  if(!$('#v5SimArea')) return;
+  const area = Number($('#v5SimArea').value) || 1;
+  V5.simArea = area;
+  if($('#v5SimAreaLbl')) $('#v5SimAreaLbl').textContent = area + ' Acres';
+
+  const c_seed = (Number($('#v5CostSeed').value)||0) * area;
+  const c_fert = (Number($('#v5CostFert').value)||0) * area;
+  const c_pest = (Number($('#v5CostPest').value)||0) * area;
+  const c_lab  = (Number($('#v5CostLab').value)||0) * area;
+  const c_irr  = (Number($('#v5CostIrr').value)||0) * area;
+  const c_mach = (Number($('#v5CostMach').value)||0) * area;
+  const c_oth  = (Number($('#v5CostOth').value)||0) * area;
+
+  const totalCost = c_seed + c_fert + c_pest + c_lab + c_irr + c_mach + c_oth;
+  const costPerAcre = totalCost / area;
+
+  const yieldPerAcre = Number($('#v5SimYield').value) || 0;
+  const pricePerQtl = Number($('#v5SimPrice').value) || 0;
+
+  const totalYield = yieldPerAcre * area;
+  const totalRev = totalYield * pricePerQtl;
+  const revPerAcre = totalRev / area;
+
+  const netProfit = totalRev - totalCost;
+  const profitPerAcre = netProfit / area;
+  const roi = totalCost > 0 ? (netProfit / totalCost) * 100 : 0;
+
+  const beYield = pricePerQtl > 0 ? (costPerAcre / pricePerQtl).toFixed(2) : '0';
+  const bePrice = totalYield > 0 ? Math.round(totalCost / totalYield) : 0;
+
+  if($('#v5KpiCost')) $('#v5KpiCost').textContent = '₹' + Math.round(totalCost).toLocaleString('en-IN');
+  if($('#v5KpiCostAcre')) $('#v5KpiCostAcre').textContent = '₹' + Math.round(costPerAcre).toLocaleString('en-IN') + ' / acre';
+
+  if($('#v5KpiRev')) $('#v5KpiRev').textContent = '₹' + Math.round(totalRev).toLocaleString('en-IN');
+  if($('#v5KpiRevAcre')) $('#v5KpiRevAcre').textContent = '₹' + Math.round(revPerAcre).toLocaleString('en-IN') + ' / acre';
+
+  if($('#v5KpiProfit')) {
+    $('#v5KpiProfit').textContent = (netProfit >= 0 ? '+' : '') + '₹' + Math.round(netProfit).toLocaleString('en-IN');
+    $('#v5KpiProfit').style.color = netProfit >= 0 ? '#2d6932' : '#b35346';
+  }
+  if($('#v5KpiProfitAcre')) $('#v5KpiProfitAcre').textContent = '₹' + Math.round(profitPerAcre).toLocaleString('en-IN') + ' / acre';
+
+  if($('#v5KpiRoi')) {
+    $('#v5KpiRoi').textContent = (roi >= 0 ? '+' : '') + roi.toFixed(1) + '%';
+    $('#v5KpiRoi').style.color = roi >= 0 ? '#2d6932' : '#b35346';
+  }
+
+  if($('#v5BeYield')) $('#v5BeYield').textContent = beYield + ' qtl/acre';
+  if($('#v5BePrice')) $('#v5BePrice').textContent = '₹' + bePrice.toLocaleString('en-IN') + ' / qtl';
+
+  if($('#v5Takeaway')) {
+    const cropName = (V5.simCrop || 'Target Crop');
+    if(netProfit >= 0) {
+      $('#v5Takeaway').innerHTML = `Cultivating <b>${cropName}</b> across ${area} acres projects a strong <b>₹${Math.round(netProfit).toLocaleString('en-IN')} net gain</b> with <b>${roi.toFixed(1)}% ROI</b>. Your breakeven price cushion is <b>₹${Math.max(0, pricePerQtl - bePrice)}/qtl</b> against mandi price dips.`;
+    } else {
+      $('#v5Takeaway').innerHTML = `<span style="color:#b35346">Warning: Current cost structure exceeds revenue by ₹${Math.abs(Math.round(netProfit)).toLocaleString('en-IN')}. Reduce input expenditures or secure higher mandi forward contracts.</span>`;
+    }
+  }
+}
+
+function v5AddIncomePrompt(){
+  const source = prompt('Source of income (e.g. Tomato Sale, Maize Produce):');
+  if(!source) return;
+  const amount = Number(prompt('Amount in ₹:'));
+  if(!Number.isFinite(amount) || amount <= 0) { toast('Please enter a valid amount.'); return; }
+  const buyer = prompt('Buyer / Mandi Trader:', 'APMC Mandi') || 'Direct';
+  const mode = prompt('Payment mode (Bank Transfer, UPI, Cash):', 'Bank Transfer') || 'Bank Transfer';
+  V5.incomes.unshift({
+    id: 'inc_' + Date.now(),
+    source,
+    amount,
+    date: new Date().toISOString().split('T')[0],
+    buyer,
+    mode,
+    desc: 'Recorded from Farm Financial module'
+  });
+  renderPage('finance');
+  v5Toast('Income record saved.');
+}
+
+function v5DeleteIncome(idx){
+  if(confirm('Delete this income record?')){
+    V5.incomes.splice(idx, 1);
+    renderPage('finance');
+    v5Toast('Income record deleted.');
+  }
+}
+
+function v5AddExpensePrompt(){
+  const cat = prompt('Expense category (Seeds, Fertilisers, Labour, Equipment, Transportation, Other):', 'Fertilisers') || 'Other';
+  const amount = Number(prompt('Expense amount in ₹:'));
+  if(!Number.isFinite(amount) || amount <= 0) { toast('Please enter a valid amount.'); return; }
+  const desc = prompt('Description / items:', `${cat} purchase`) || cat;
+  const vendor = prompt('Vendor / Worker:', 'Agro Store') || 'Direct';
+  const mode = prompt('Payment mode (Cash, UPI, Bank Transfer):', 'Cash') || 'Cash';
+  V5.expenses.unshift({
+    id: 'exp_' + Date.now(),
+    category: cat,
+    amount,
+    date: new Date().toISOString().split('T')[0],
+    desc,
+    vendor,
+    mode
+  });
+  renderPage('finance');
+  v5Toast('Expense record saved.');
+}
+
+function v5DeleteExpense(idx){
+  if(confirm('Delete this expense record?')){
+    V5.expenses.splice(idx, 1);
+    renderPage('finance');
+    v5Toast('Expense record deleted.');
+  }
+}
+
+function v5AddLoanPrompt(){
+  const lender = prompt('Lender / Bank name (e.g. SBI KCC, Cooperative Bank):');
+  if(!lender) return;
+  const amount = Number(prompt('Principal loan amount in ₹:'));
+  if(!Number.isFinite(amount) || amount <= 0) { toast('Please enter a valid loan amount.'); return; }
+  const rate = Number(prompt('Annual interest rate (%):', '7.0')) || 7.0;
+  const purpose = prompt('Loan purpose:', 'Crop inputs') || 'Agricultural Working Capital';
+  V5.loans.unshift({
+    id: 'loan_' + Date.now(),
+    lender,
+    amount,
+    rate,
+    date: new Date().toISOString().split('T')[0],
+    due: '2027-03-31',
+    purpose,
+    repaid: 0,
+    repayments: []
+  });
+  renderPage('finance');
+  v5Toast('Loan record created.');
+}
+
+function v5RecordRepaymentPrompt(idx){
+  const loan = V5.loans[idx];
+  const pending = Math.max(0, loan.amount - Number(loan.repaid||0));
+  const amount = Number(prompt(`Repayment amount in ₹ (Pending: ${v5Money(pending)}):`, pending));
+  if(!Number.isFinite(amount) || amount <= 0 || amount > pending) { toast('Invalid repayment amount.'); return; }
+  loan.repaid = Number(loan.repaid||0) + amount;
+  loan.repayments = loan.repayments || [];
+  loan.repayments.push({
+    date: new Date().toISOString().split('T')[0],
+    amount,
+    mode: 'Bank Transfer',
+    notes: 'Installment payment'
+  });
+  renderPage('finance');
+  v5Toast('Repayment logged.');
+}
+
+function v5DeleteLoan(idx){
+  if(confirm('Delete this loan facility?')){
+    V5.loans.splice(idx, 1);
+    renderPage('finance');
+    v5Toast('Loan facility removed.');
+  }
+}
 function market(){return `${pageHead('Market & harvest','Compare market information and prepare for harvest and selling.')}<div class="panel"><div class="panel-head"><h3>Market price explorer</h3><span>Illustrative sample prices · Not live</span></div><div class="field-row"><div class="field"><label>Crop</label><select><option>Maize</option><option>Chilli</option><option>Paddy</option><option>Groundnut</option></select></div><div class="field"><label>Market area</label><select><option>Dharwad district</option><option>Hubballi</option><option>Belagavi</option></select></div></div><table class="table"><thead><tr><th>MARKET</th><th>CROP</th><th>SAMPLE PRICE</th><th>CHANGE</th></tr></thead><tbody>${DEMO_DATA.markets.map(m=>`<tr><td><b>${m.market}</b></td><td>${m.crop}</td><td>${m.price}</td><td style="color:#61914d">${m.change}</td></tr>`).join('')}</tbody></table><p class="muted" style="font-size:10px">Production implementation must display source, commodity variety, unit, market date and freshness.</p></div><div class="module-grid" style="margin-top:15px"><div class="module-card" onclick="openModal('Harvest planner','Plan harvest windows, labour and storage needs.')"><div class="ficon">🌾</div><h3>Harvest planner</h3><p>Organise harvest dates, labour and expected quantities.</p><small>Open planner →</small></div><div class="module-card" onclick="openModal('Collective selling','Explore farmer groups and collective selling workflows.')"><div class="ficon">🤝</div><h3>FPO & collective selling</h3><p>Coordinate lots, member quantities and buyer interest.</p><small>Explore groups →</small></div><div class="module-card" onclick="openModal('Post-harvest','Track grading, storage, transport and losses.')"><div class="ficon">📦</div><h3>Post-harvest management</h3><p>Track quality, storage, transport and post-harvest tasks.</p><small>Open module →</small></div></div>`}
 function support(){return `${pageHead('Knowledge & support','Find useful agricultural information and connect with support services.')}<div class="module-grid">${[['📚','Agricultural knowledge','Search trusted farming guides, research and local practices.'],['🏛️','Government schemes','Explore eligibility, documents and official scheme links.'],['🧑‍🌾','Expert consultation','Prepare a question and request help from an agriculture expert.'],['👥','FPO & community','Find farmer groups and collective support opportunities.'],['🌐','Language & accessibility','Choose a preferred language and accessible interaction mode.'],['📡','Offline-first workspace','View saved information and sync updates when connected.'],['🧠','AI Farming Memory','Use farm history, past activities and preferences as context for future assistance.'],['🎙️','Multilingual voice assistant','Speak and listen in a preferred supported language.'],['🧬','AI Farm Digital Twin','Explore farm conditions and compare crop-change scenarios.'],['⚠️','Agricultural risk intelligence','Bring weather, crop and operational risk signals into one view.']].map(m=>`<div class="module-card" onclick="openModal('${m[1]}','${m[2]}')"><div class="ficon">${m[0]}</div><h3>${m[1]}</h3><p>${m[2]}</p><small>Explore →</small></div>`).join('')}</div><div class="panel" style="margin-top:15px"><div class="panel-head"><h3>Important guidance</h3><span>Trust & transparency</span></div><p class="muted" style="font-size:12px;line-height:1.8">AgriMind should show where information comes from, when it was updated and whether it is an AI-generated suggestion. Government scheme details should link to official sources. High-impact decisions should encourage local expert verification.</p></div>`}
 function assistant(){return `${pageHead('AgriMind assistant','Ask questions about your farm, plans and agricultural information.')}<div class="split"><div class="panel chatbox"><div class="panel-head"><h3><span style="color:#5b8d4b">●</span> Farm assistant</h3><span>Prototype conversation</span></div><div class="chat-messages" id="chatMessages"><div class="bubble">Hello! I can help you explore crop planning, soil reports, farm records and market information. What would you like to understand today?</div><div class="bubble user">How should I plan my next crop season?</div><div class="bubble">We can start by reviewing your field, soil test, water availability, previous crop and local season conditions. Please treat any suggestions as preliminary until verified with current local information.</div></div><form class="chat-input" onsubmit="sendChat(event)"><input id="chatInput" placeholder="Ask about your farm..." autocomplete="off"><button class="btn btn-primary" type="submit">Send ↑</button></form></div><div class="panel"><div class="panel-head"><h3>Suggested questions</h3><span>Try a prompt</span></div>${['Help me understand my soil test report','Create a crop activity checklist','What should I compare before selling?','Explain a pest symptom I observed'].map(q=>`<div class="alert" style="cursor:pointer" onclick="document.getElementById('chatInput').value='${q}';document.getElementById('chatInput').focus()"><div class="alert-icon">✦</div><div><strong>${q}</strong><p>Use as a starting point for your question</p></div></div>`).join('')}<p class="muted" style="font-size:10px">The live AI, RAG retrieval, multilingual voice and farm memory are not connected in this prototype.</p></div></div>`}
@@ -285,17 +772,41 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <script>
-/* AgriMind V5: interactive farm setup, 3D twin view, inventory, labour and equipment */
-const V5 = {farmCreated:false, farmName:'', fields:3, acres:8.5, crop:'Maize', selectedPlot:1, stock:[
- {name:'Urea',category:'Fertiliser',qty:18,unit:'kg',minimum:10,expiry:'2027-04-30'},
- {name:'Groundnut seeds',category:'Seeds',qty:6,unit:'kg',minimum:8,expiry:'2027-01-15'},
- {name:'Neem-based spray',category:'Crop protection',qty:4,unit:'L',minimum:2,expiry:'2027-08-10'},
- {name:'NPK 19:19:19',category:'Fertiliser',qty:12,unit:'kg',minimum:5,expiry:'2027-02-20'}
-],workers:[
- {name:'Ramesh',role:'Field worker',attendance:'Present',wage:500},
- {name:'Basavaraj',role:'Irrigation',attendance:'Present',wage:550},
- {name:'Manju',role:'Harvest worker',attendance:'Absent',wage:450}
-]};
+/* AgriMind V5: interactive farm setup, 3D twin view, inventory, labour, equipment and finance */
+const V5 = {
+  farmCreated: false, farmName: '', fields: 3, acres: 8.5, crop: 'Maize', selectedPlot: 1,
+  financeTab: 'overview',
+  expenseFilter: 'All',
+  txSearch: '',
+  txType: 'ALL',
+  stock: [
+    {name:'Urea',category:'Fertiliser',qty:18,unit:'kg',minimum:10,expiry:'2027-04-30'},
+    {name:'Groundnut seeds',category:'Seeds',qty:6,unit:'kg',minimum:8,expiry:'2027-01-15'},
+    {name:'Neem-based spray',category:'Crop protection',qty:4,unit:'L',minimum:2,expiry:'2027-08-10'},
+    {name:'NPK 19:19:19',category:'Fertiliser',qty:12,unit:'kg',minimum:5,expiry:'2027-02-20'}
+  ],
+  workers: [
+    {name:'Ramesh',role:'Field worker',attendance:'Present',wage:500},
+    {name:'Basavaraj',role:'Irrigation',attendance:'Present',wage:550},
+    {name:'Manju',role:'Harvest worker',attendance:'Absent',wage:450}
+  ],
+  incomes: [
+    {id:'i1', source:'Wheat Grain Harvest Sale (APMC Mandi)', amount:125000, date:'2026-04-12', buyer:'Kisan Mandi Traders Ltd', mode:'Bank Transfer', desc:'50 quintals Sharbati wheat sold at ₹2,500/quintal'},
+    {id:'i2', source:'Soybean Harvest Advance Sale', amount:67000, date:'2026-05-20', buyer:'AgroCorp Processing Hub', mode:'Bank Transfer', desc:'Advance token payment for upcoming Kharif crop harvest lot'},
+    {id:'i3', source:'PM-KISAN Direct Benefit Transfer', amount:2000, date:'2026-06-01', buyer:'Ministry of Agriculture DBT', mode:'Bank Transfer', desc:'Direct income support installment 17 credited to DBT bank account'}
+  ],
+  expenses: [
+    {id:'e1', category:'Seeds', amount:14500, date:'2026-05-28', vendor:'Shree Ram Krishi Kendra', mode:'UPI', desc:'Certified Hybrid Pioneer Maize & JS-335 Soybean Seeds (6 bags)'},
+    {id:'e2', category:'Fertilisers', amount:18200, date:'2026-06-05', vendor:'District Kisan Seva Sahakari', mode:'Cash', desc:'IFFCO Neem-Coated Urea (12 bags) and DAP (6 bags)'},
+    {id:'e3', category:'Labour', amount:16500, date:'2026-06-18', vendor:'Local Farm Worker Group', mode:'Cash', desc:'Pre-sowing land levelling, bund trimming & transplantation (33 person-days)'},
+    {id:'e4', category:'Equipment', amount:12800, date:'2026-06-22', vendor:'Balaji Agri Machinery Rental', mode:'UPI', desc:'Tractor rotavator tillage rental (16 hours @ ₹800/hr)'},
+    {id:'e5', category:'Transportation', amount:6400, date:'2026-06-25', vendor:'Sai Krupa Logistics', mode:'Cash', desc:'Mini-truck freight transporting bulk fertilizers and inputs'}
+  ],
+  loans: [
+    {id:'l1', lender:'State Bank of India (KCC)', amount:100000, rate:7.0, date:'2026-01-15', due:'2027-01-15', purpose:'Kharif Crop Inputs & Pre-Monsoon Prep', terms:'Kisan Credit Card crop loan with 3% prompt repayment incentive', repaid:35000, repayments:[{date:'2026-05-02', amount:35000, mode:'Bank Transfer', notes:'Rabi harvest installment'}]},
+    {id:'l2', lender:'District Agricultural Cooperative Society', amount:40000, rate:6.5, date:'2026-03-10', due:'2026-12-31', purpose:'Micro-Irrigation Infrastructure', terms:'Micro-credit for solar irrigation pump subsidised down payment', repaid:10000, repayments:[{date:'2026-06-10', amount:10000, mode:'Cheque', notes:'Quarterly repayment'}]}
+  ]
+};
 const v5Money=n=>'₹'+Number(n).toLocaleString('en-IN');
 function v5Twin(){
  const setup = !V5.farmCreated;
