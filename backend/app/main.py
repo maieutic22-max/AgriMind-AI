@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 from app.core.config import settings
 from app.core.logging import setup_logging, logger
 from app.api.v1.router import api_v1_router
-from app.database.connection import check_database_connection
+from app.database.connection import check_database_connection, init_db
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -17,6 +17,11 @@ async def lifespan(app: FastAPI):
     db_ok, db_msg = check_database_connection()
     if db_ok:
         logger.info(f"Database status: {db_msg}")
+        tables_ok, tables_msg = init_db()
+        if tables_ok:
+            logger.info(f"Database schema: {tables_msg}")
+        else:
+            logger.warning(f"Database schema warning: {tables_msg}")
     else:
         logger.warning(f"Database status: {db_msg}")
         

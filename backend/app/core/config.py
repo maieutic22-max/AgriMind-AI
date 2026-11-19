@@ -1,7 +1,13 @@
 import os
+from pathlib import Path
 from typing import List, Union
 from pydantic import AnyHttpUrl, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# File system paths for robust .env loading across root and backend directories
+BASE_DIR = Path(__file__).resolve().parent.parent.parent  # backend/
+ROOT_DIR = BASE_DIR.parent  # AgriMind AI/
+
 
 
 class Settings(BaseSettings):
@@ -43,7 +49,11 @@ class Settings(BaseSettings):
     DISEASE_API_KEY: str = ""
     
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(
+            str(ROOT_DIR / ".env"),
+            str(BASE_DIR / ".env"),
+            ".env"
+        ),
         env_file_encoding="utf-8",
         case_sensitive=True,
         extra="ignore"
