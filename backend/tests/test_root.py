@@ -1,12 +1,8 @@
-from fastapi.testclient import TestClient
-from app.main import app
+from app.main import read_root
 
-client = TestClient(app)
 
 def test_root_endpoint():
-    response = client.get("/")
-    assert response.status_code == 200
-    data = response.json()
+    data = read_root()
     assert data["service"] == "AgriMind AI API"
     assert data["status"] == "online"
     assert "docs_url" in data

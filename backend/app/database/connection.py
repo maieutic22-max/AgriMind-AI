@@ -94,12 +94,24 @@ def init_db() -> Tuple[bool, str]:
     except Exception as exc:
         return False, f"Failed to create tables: {type(exc).__name__}: {str(exc)}"
 
+_db_status_checked = False
+_db_is_available = False
+
 def get_db() -> Generator[Optional[Session], None, None]:
     """FastAPI dependency for database sessions. Returns None if DB not configured."""
+    global _db_status_checked, _db_is_available
     if SessionLocal is None:
         yield None
         return
-        
+
+    if not _db_status_checked:
+        _db_is_available, _ = check_database_connection()
+        _db_status_checked = True
+
+    if not _db_is_available:
+        yield None
+        return
+
     db = SessionLocal()
     try:
         yield db
