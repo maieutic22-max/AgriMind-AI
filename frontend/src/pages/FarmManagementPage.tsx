@@ -9,6 +9,7 @@ import {
   Users,
   RefreshCw,
   Calculator,
+  Handshake,
 } from 'lucide-react';
 import { StatusBadge } from '../components/ui/StatusBadge';
 import { financeApi } from '../services/financeApi';
@@ -25,9 +26,11 @@ import { ExpenseManager } from '../modules/finance/ExpenseManager';
 import { LoanManager } from '../modules/finance/LoanManager';
 import { TransactionHistory } from '../modules/finance/TransactionHistory';
 import { ProfitabilitySimulator } from '../modules/profitability/ProfitabilitySimulator';
+import { MarketIntelligence } from '../modules/market/MarketIntelligence';
+import { FPOCollectiveSelling } from '../modules/fpo/FPOCollectiveSelling';
 
 export const FarmManagementPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'profitability' | 'income' | 'expenses' | 'loans' | 'history'>(
+  const [activeTab, setActiveTab] = useState<'overview' | 'profitability' | 'market' | 'fpo' | 'income' | 'expenses' | 'loans' | 'history'>(
     'overview'
   );
   const [loading, setLoading] = useState(true);
@@ -150,13 +153,16 @@ export const FarmManagementPage: React.FC = () => {
             <span className="text-[10px] font-bold uppercase tracking-wider text-teal-800 bg-teal-100 px-2 py-0.5 rounded-full">
               D20 Profitability Simulator
             </span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">
+              D21 Market Intelligence
+            </span>
             <StatusBadge status="connected" />
           </div>
           <h2 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight mt-1">
             Farm Business, Finance & Operations
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Simulate crop economics & ROI, track revenues, manage input expenses, and monitor real-time cash balance.
+            Simulate crop economics & ROI, track APMC mandi rates, manage revenues & expenses, and monitor real-time cash balance.
           </p>
         </div>
 
@@ -195,6 +201,30 @@ export const FarmManagementPage: React.FC = () => {
         >
           <Calculator className="w-4 h-4" />
           <span>Profitability Simulator (D20)</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('market')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+            activeTab === 'market'
+              ? 'bg-emerald-700 text-white shadow-sm'
+              : 'text-slate-600 hover:text-emerald-700 hover:bg-emerald-50'
+          }`}
+        >
+          <TrendingUp className="w-4 h-4" />
+          <span>Market Intelligence (D21)</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('fpo')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+            activeTab === 'fpo'
+              ? 'bg-emerald-800 text-white shadow-sm'
+              : 'text-slate-600 hover:text-emerald-800 hover:bg-emerald-50'
+          }`}
+        >
+          <Handshake className="w-4 h-4" />
+          <span>FPO & Collective Selling (D22)</span>
         </button>
 
         <button
@@ -286,6 +316,52 @@ export const FarmManagementPage: React.FC = () => {
               </button>
             </div>
 
+            {/* Smart Market Intelligence Quick Action Card (D21) */}
+            <div className="bg-gradient-to-r from-[#17301c] via-[#1e3e24] to-[#17301c] rounded-2xl p-5 text-white shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-emerald-800/60">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300 bg-amber-950/80 px-2 py-0.5 rounded-full border border-amber-700/50">
+                    Deliverable D21
+                  </span>
+                  <span className="text-xs font-black text-white">Smart Market Intelligence (APMC Mandi Rates)</span>
+                </div>
+                <p className="text-xs text-emerald-100/80 max-w-xl">
+                  Access official AGMARKNET live prices for Maize, Soybean, Onion, Tomato, and Wheat. Compare prices across mandis, analyze price spreads, and view 30-day historical trends.
+                </p>
+              </div>
+
+              <button
+                onClick={() => setActiveTab('market')}
+                className="px-4 py-2 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-bold text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5 whitespace-nowrap self-stretch sm:self-auto justify-center"
+              >
+                <TrendingUp className="w-4 h-4" />
+                <span>Explore Mandi Prices →</span>
+              </button>
+            </div>
+
+            {/* FPO & Collective Selling Quick Action Card (D22) */}
+            <div className="bg-gradient-to-r from-[#17301c] via-[#1a4023] to-[#122818] rounded-2xl p-5 text-white shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-emerald-700/60">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-teal-300 bg-teal-950/80 px-2 py-0.5 rounded-full border border-teal-700/50">
+                    Deliverable D22
+                  </span>
+                  <span className="text-xs font-black text-white">FPO & Collective Selling Hub</span>
+                </div>
+                <p className="text-xs text-emerald-100/80 max-w-xl">
+                  Form farmer producer collectives, combine crop harvest into bulk lots, record competing buyer bids, and execute institutional supply deals with higher bargaining margins.
+                </p>
+              </div>
+
+              <button
+                onClick={() => setActiveTab('fpo')}
+                className="px-4 py-2 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-bold text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5 whitespace-nowrap self-stretch sm:self-auto justify-center"
+              >
+                <Handshake className="w-4 h-4" />
+                <span>Open Collective Hub →</span>
+              </button>
+            </div>
+
             {/* Other Member 3 Operations Deliverables (D24 & D25) intact */}
             <div className="pt-4 border-t border-slate-200">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
@@ -356,6 +432,14 @@ export const FarmManagementPage: React.FC = () => {
 
         {activeTab === 'profitability' && (
           <ProfitabilitySimulator />
+        )}
+
+        {activeTab === 'market' && (
+          <MarketIntelligence />
+        )}
+
+        {activeTab === 'fpo' && (
+          <FPOCollectiveSelling />
         )}
 
         {activeTab === 'income' && (

@@ -497,6 +497,71 @@ function finance(){
         </div>
       </div>
     </div>`;
+  } else if (tab === 'fpo') {
+    subcontent = `
+    <div class="panel" style="background:#ffffff;margin-top:12px;border:1px solid #c2e2be">
+      <div class="panel-head">
+        <div>
+          <h3 style="color:#214424;display:flex;align-items:center;gap:6px">👥 FPO & Collective Selling Hub (Deliverable D22)</h3>
+          <span style="color:#4e7c42">Sahyadri Kisan Producer Company Ltd · Reg: U01409MH2021PTC356789 (Nashik)</span>
+        </div>
+        <span class="tag" style="background:#e0f2dc;color:#28632c">450+ Farmers</span>
+      </div>
+
+      <div class="stats" style="margin-top:12px">
+        <div class="stat"><div class="stat-top"><span>APPROVED FARMERS</span></div><div class="stat-num" style="color:#204022">4 Active</div><div class="trend" style="color:#935824">1 Pending Approval</div></div>
+        <div class="stat"><div class="stat-top"><span>AVAILABLE PRODUCE</span></div><div class="stat-num" style="color:#28632c">235 Quintals</div><div class="trend">Ready for Pooling</div></div>
+        <div class="stat"><div class="stat-top"><span>ACTIVE POOLED LOTS</span></div><div class="stat-num" style="color:#204022">1 Lot (200 qtl)</div><div class="trend" style="color:#2d6932">2 Bids Received</div></div>
+        <div class="stat"><div class="stat-top"><span>COLLECTIVE SALES REALIZED</span></div><div class="stat-num" style="color:#28632c">₹7,42,500</div><div class="trend">150 qtl Settled to Farmers</div></div>
+      </div>
+
+      <div class="panel" style="margin-top:16px;background:#fbfdfa;border:1px solid #d8ebd5">
+        <div class="panel-head"><h3>Active Collective Pooled Lots</h3><span class="tag" style="background:#eaf5e8;color:#204022">Open for Institutional Bids</span></div>
+        <table class="table" style="font-size:11px;margin-top:8px">
+          <thead><tr><th>LOT CODE</th><th>COMMODITY & GRADE</th><th>TOTAL QUANTITY</th><th>WEIGHTED ASK RATE</th><th>FARMERS POOLED</th><th>TOP BUYER BID</th><th>STATUS</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><b style="font-family:monospace;background:#eee;padding:2px 6px;border-radius:4px">LOT-MAIZE-2026-01</b></td>
+              <td><b>Maize (Yellow Hybrid)</b><br><small class="muted">Moisture &lt; 12% · Grade A</small></td>
+              <td><b>200 Quintals</b></td>
+              <td style="color:#28632c;font-weight:800">₹2,419 / qtl</td>
+              <td><b>3 Farmers</b><br><small class="muted">Suresh, Prakash, Anusaya</small></td>
+              <td style="color:#204022;font-weight:900">₹2,460 / qtl<br><small style="color:#28632c;font-weight:700">+₹41 premium (Cargill)</small></td>
+              <td><span class="tag" style="background:#e0f2dc;color:#28632c">OFFER RECEIVED</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel" style="margin-top:16px;background:#ffffff;border:1px solid #c8e4c4">
+        <div class="panel-head"><h3>Institutional Buyer Bids Comparison (LOT-MAIZE-2026-01)</h3><span class="tag">Bid Arbitrage</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
+          <div style="border:1px solid #bce2b8;background:#f4faf2;border-radius:10px;padding:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <b style="color:#204022;font-size:12px">Cargill India Animal Nutrition Ltd</b>
+              <span class="tag" style="background:#28632c;color:#fff;font-size:10px">HIGHEST BID</span>
+            </div>
+            <div style="font-size:11px;color:#555;margin-top:4px">Contact: Amit Verma (Lead Procurement) · Ph: 9811234567</div>
+            <div style="font-size:18px;font-weight:900;color:#28632c;margin:8px 0">₹2,460 <small style="font-size:11px;color:#555">/ qtl (Total: ₹4,92,000)</small></div>
+            <div style="font-size:11px;color:#204022;font-weight:700">★ +₹41/qtl premium over FPO asking price</div>
+            <div style="font-size:10px;color:#666;margin-top:4px">Terms: 100% direct bank transfer within 24h of weighment</div>
+            <button class="btn btn-primary" style="margin-top:8px;font-size:11px;padding:4px 10px" onclick="toast('Deal accepted with Cargill India! Sales ledger updated.')">✓ Accept Offer</button>
+          </div>
+
+          <div style="border:1px solid #e0e0e0;background:#fafafa;border-radius:10px;padding:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <b style="color:#333;font-size:12px">Godrej Agrovet Feed Mill</b>
+              <span class="tag" style="background:#eee;color:#666;font-size:10px">COMPETING</span>
+            </div>
+            <div style="font-size:11px;color:#555;margin-top:4px">Contact: Sandeep Joshi · Ph: 9823456789</div>
+            <div style="font-size:18px;font-weight:900;color:#555;margin:8px 0">₹2,380 <small style="font-size:11px;color:#555">/ qtl (Total: ₹4,76,000)</small></div>
+            <div style="font-size:11px;color:#a34235;font-weight:700">−₹39/qtl discount vs ask</div>
+            <div style="font-size:10px;color:#666;margin-top:4px">Terms: e-NAM Escrow / 48 hrs after unloading</div>
+            <button class="btn btn-ghost" style="margin-top:8px;font-size:11px;padding:4px 10px" onclick="toast('Offer rejected.')">✕ Reject</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
   }
 
   return `${pageHead('Farm Financial Management','Track farm income, expenses, loans, repayments and available balance.')}
@@ -513,6 +578,7 @@ function finance(){
     <button class="${tab==='loans'?'active':''}" onclick="V5.financeTab='loans';renderPage('finance')">④ Loan Management (${V5.loans.length})</button>
     <button class="${tab==='history'?'active':''}" onclick="V5.financeTab='history';renderPage('finance')">⑤ Transaction History</button>
     <button class="${tab==='simulator'?'active':''}" onclick="V5.financeTab='simulator';renderPage('finance');setTimeout(v5CalcLive,50)">⑥ Profitability Simulator (D20)</button>
+    <button class="${tab==='fpo'?'active':''}" onclick="V5.financeTab='fpo';renderPage('finance')">⑦ FPO & Collective Selling (D22)</button>
   </div>
   ${subcontent}`;
 }
@@ -716,7 +782,97 @@ function v5DeleteLoan(idx){
     v5Toast('Loan facility removed.');
   }
 }
-function market(){return `${pageHead('Market & harvest','Compare market information and prepare for harvest and selling.')}<div class="panel"><div class="panel-head"><h3>Market price explorer</h3><span>Illustrative sample prices · Not live</span></div><div class="field-row"><div class="field"><label>Crop</label><select><option>Maize</option><option>Chilli</option><option>Paddy</option><option>Groundnut</option></select></div><div class="field"><label>Market area</label><select><option>Dharwad district</option><option>Hubballi</option><option>Belagavi</option></select></div></div><table class="table"><thead><tr><th>MARKET</th><th>CROP</th><th>SAMPLE PRICE</th><th>CHANGE</th></tr></thead><tbody>${DEMO_DATA.markets.map(m=>`<tr><td><b>${m.market}</b></td><td>${m.crop}</td><td>${m.price}</td><td style="color:#61914d">${m.change}</td></tr>`).join('')}</tbody></table><p class="muted" style="font-size:10px">Production implementation must display source, commodity variety, unit, market date and freshness.</p></div><div class="module-grid" style="margin-top:15px"><div class="module-card" onclick="openModal('Harvest planner','Plan harvest windows, labour and storage needs.')"><div class="ficon">🌾</div><h3>Harvest planner</h3><p>Organise harvest dates, labour and expected quantities.</p><small>Open planner →</small></div><div class="module-card" onclick="openModal('Collective selling','Explore farmer groups and collective selling workflows.')"><div class="ficon">🤝</div><h3>FPO & collective selling</h3><p>Coordinate lots, member quantities and buyer interest.</p><small>Explore groups →</small></div><div class="module-card" onclick="openModal('Post-harvest','Track grading, storage, transport and losses.')"><div class="ficon">📦</div><h3>Post-harvest management</h3><p>Track quality, storage, transport and post-harvest tasks.</p><small>Open module →</small></div></div>`}
+function market(){
+  const crop = V5.mktCrop || 'Maize';
+  const mktData = [
+    { crop: 'Maize', mandi: 'Nashik APMC Yard', dist: 'Nashik, MH', min: 2180, modal: 2350, max: 2420, date: 'Today', vol: '145 MT' },
+    { crop: 'Maize', mandi: 'Lasalgaon APMC', dist: 'Nashik, MH', min: 2250, modal: 2480, max: 2510, date: 'Today', vol: '210 MT', peak: true },
+    { crop: 'Maize', mandi: 'Pimpalgaon Mandi', dist: 'Nashik, MH', min: 2150, modal: 2310, max: 2390, date: 'Today', vol: '88 MT' },
+    { crop: 'Soybean', mandi: 'Lasalgaon APMC', dist: 'Nashik, MH', min: 4600, modal: 4920, max: 5050, date: 'Today', vol: '320 MT', peak: true },
+    { crop: 'Soybean', mandi: 'Nashik APMC Yard', dist: 'Nashik, MH', min: 4520, modal: 4790, max: 4910, date: 'Today', vol: '180 MT' },
+    { crop: 'Onion', mandi: 'Lasalgaon APMC', dist: 'Nashik, MH', min: 1800, modal: 2550, max: 2850, date: 'Today', vol: '1450 MT', peak: true },
+    { crop: 'Onion', mandi: 'Pimpalgaon Mandi', dist: 'Nashik, MH', min: 1750, modal: 2490, max: 2780, date: 'Today', vol: '1120 MT' },
+    { crop: 'Tomato', mandi: 'Pimpalgaon Mandi', dist: 'Nashik, MH', min: 1200, modal: 1680, max: 1950, date: 'Today', vol: '680 MT', peak: true },
+    { crop: 'Tomato', mandi: 'Nashik APMC Yard', dist: 'Nashik, MH', min: 1150, modal: 1590, max: 1850, date: 'Today', vol: '420 MT' },
+    { crop: 'Wheat', mandi: 'Indore APMC', dist: 'Indore, MP', min: 2600, modal: 3120, max: 3400, date: 'Today', vol: '520 MT', peak: true },
+    { crop: 'Wheat', mandi: 'Nashik APMC Yard', dist: 'Nashik, MH', min: 2380, modal: 2650, max: 2820, date: 'Today', vol: '140 MT' },
+    { crop: 'Paddy', mandi: 'Khanna APMC', dist: 'Ludhiana, PB', min: 3400, modal: 3950, max: 4250, date: 'Today', vol: '720 MT', peak: true },
+    { crop: 'Paddy', mandi: 'Hubballi APMC', dist: 'Dharwad, KA', min: 2300, modal: 2480, max: 2650, date: 'Today', vol: '240 MT' },
+  ];
+  const filtered = mktData.filter(m => m.crop === crop);
+  const highest = filtered.reduce((max, m) => m.modal > max.modal ? m : max, filtered[0] || {});
+
+  return `${pageHead('Smart Market Intelligence (D21)','Official AGMARKNET Mandi rates, price spreads, historical trends and selling advisory.')}
+  <div class="panel" style="background:linear-gradient(135deg,#f4faf2 0%,#ffffff 100%);border:1px solid #c2e2be;margin-bottom:16px">
+    <div class="panel-head">
+      <div>
+        <h3 style="color:#214424">Official AGMARKNET APMC Mandi Price Explorer</h3>
+        <span style="color:#4e7c42">Directorate of Marketing & Inspection (DMI) Verified Mandi Bulletin</span>
+      </div>
+      <span class="tag" style="background:#e0f2dc;color:#28632c">Live APMC Feed</span>
+    </div>
+
+    <!-- Highest Rate Banner -->
+    ${highest ? `
+    <div style="background:#eaf5e8;border:1px solid #bfe0bc;border-radius:12px;padding:12px 16px;margin:12px 0;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <b style="color:#204022;font-size:12px">★ Peak Regional Rate for ${crop}:</b>
+        <span style="font-size:12px;color:#2d6932"> Available at <b>${highest.mandi}</b> (${highest.dist})</span>
+      </div>
+      <div style="text-align:right">
+        <span style="font-size:10px;color:#666">Modal Rate</span>
+        <div style="font-size:16px;font-weight:900;color:#28632c">₹${highest.modal.toLocaleString('en-IN')} <small style="font-size:11px">/ qtl</small></div>
+      </div>
+    </div>` : ''}
+
+    <div class="field-row" style="margin-top:12px">
+      <div class="field">
+        <label>Select Crop Commodity</label>
+        <select onchange="V5.mktCrop=this.value;renderPage('market')">
+          ${['Maize', 'Soybean', 'Onion', 'Tomato', 'Wheat', 'Paddy'].map(c=>`<option value="${c}" ${c===crop?'selected':''}>${c}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field">
+        <label>Official Provenance</label>
+        <input readonly value="AGMARKNET (agmarknet.gov.in) Official Feed" style="background:#f5f7f3;font-weight:700;color:#2d6932">
+      </div>
+    </div>
+
+    <table class="table" style="margin-top:12px">
+      <thead><tr><th>MANDI MARKET</th><th>LOCATION</th><th>MIN RATE</th><th>MODAL RATE</th><th>MAX RATE</th><th>TRADED VOLUME</th><th>STATUS</th></tr></thead>
+      <tbody>
+        ${filtered.map(m=>`
+          <tr style="${m.peak?'background:#f2f9f0;font-weight:700':''}">
+            <td><b>${m.mandi}</b> ${m.peak?'<span class="tag" style="background:#d8eed4;color:#1e5e23">TOP RATE</span>':''}</td>
+            <td>${m.dist}</td>
+            <td style="color:#666">₹${m.min.toLocaleString('en-IN')}</td>
+            <td style="color:#28632c;font-weight:800;font-size:13px">₹${m.modal.toLocaleString('en-IN')}</td>
+            <td style="color:#666">₹${m.max.toLocaleString('en-IN')}</td>
+            <td>${m.vol}</td>
+            <td><span class="tag" style="background:#eaf5e8;color:#28632c">Verified</span></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="split" style="margin-top:16px">
+    <div class="panel">
+      <div class="panel-head"><h3>Selling Decision Guidance</h3><span class="tag">Decision Support</span></div>
+      <p style="font-size:12px;line-height:1.7;color:#444">
+        Among reporting mandis for <b>${crop}</b>, <b>${highest?.mandi||'Lasalgaon APMC'}</b> currently yields the strongest net realization. 
+        Before hauling lots, ensure volume justifies freight (~₹45/qtl/30km) and produce meets quality grade standards (moisture &lt; 12%).
+      </p>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3>Mandi Price Arbitrage</h3><span class="tag">Arbitrage Alert</span></div>
+      <p style="font-size:12px;line-height:1.7;color:#444">
+        Price spread across regional APMC centers is currently <b>₹130–180/quintal</b>. 
+        Farmers with lots exceeding 25 quintals achieve superior margins by transporting directly to destination terminal mandis.
+      </p>
+    </div>
+  </div>`;
+}
 function support(){return `${pageHead('Knowledge & support','Find useful agricultural information and connect with support services.')}<div class="module-grid">${[['📚','Agricultural knowledge','Search trusted farming guides, research and local practices.'],['🏛️','Government schemes','Explore eligibility, documents and official scheme links.'],['🧑‍🌾','Expert consultation','Prepare a question and request help from an agriculture expert.'],['👥','FPO & community','Find farmer groups and collective support opportunities.'],['🌐','Language & accessibility','Choose a preferred language and accessible interaction mode.'],['📡','Offline-first workspace','View saved information and sync updates when connected.'],['🧠','AI Farming Memory','Use farm history, past activities and preferences as context for future assistance.'],['🎙️','Multilingual voice assistant','Speak and listen in a preferred supported language.'],['🧬','AI Farm Digital Twin','Explore farm conditions and compare crop-change scenarios.'],['⚠️','Agricultural risk intelligence','Bring weather, crop and operational risk signals into one view.']].map(m=>`<div class="module-card" onclick="openModal('${m[1]}','${m[2]}')"><div class="ficon">${m[0]}</div><h3>${m[1]}</h3><p>${m[2]}</p><small>Explore →</small></div>`).join('')}</div><div class="panel" style="margin-top:15px"><div class="panel-head"><h3>Important guidance</h3><span>Trust & transparency</span></div><p class="muted" style="font-size:12px;line-height:1.8">AgriMind should show where information comes from, when it was updated and whether it is an AI-generated suggestion. Government scheme details should link to official sources. High-impact decisions should encourage local expert verification.</p></div>`}
 function assistant(){return `${pageHead('AgriMind assistant','Ask questions about your farm, plans and agricultural information.')}<div class="split"><div class="panel chatbox"><div class="panel-head"><h3><span style="color:#5b8d4b">●</span> Farm assistant</h3><span>Prototype conversation</span></div><div class="chat-messages" id="chatMessages"><div class="bubble">Hello! I can help you explore crop planning, soil reports, farm records and market information. What would you like to understand today?</div><div class="bubble user">How should I plan my next crop season?</div><div class="bubble">We can start by reviewing your field, soil test, water availability, previous crop and local season conditions. Please treat any suggestions as preliminary until verified with current local information.</div></div><form class="chat-input" onsubmit="sendChat(event)"><input id="chatInput" placeholder="Ask about your farm..." autocomplete="off"><button class="btn btn-primary" type="submit">Send ↑</button></form></div><div class="panel"><div class="panel-head"><h3>Suggested questions</h3><span>Try a prompt</span></div>${['Help me understand my soil test report','Create a crop activity checklist','What should I compare before selling?','Explain a pest symptom I observed'].map(q=>`<div class="alert" style="cursor:pointer" onclick="document.getElementById('chatInput').value='${q}';document.getElementById('chatInput').focus()"><div class="alert-icon">✦</div><div><strong>${q}</strong><p>Use as a starting point for your question</p></div></div>`).join('')}<p class="muted" style="font-size:10px">The live AI, RAG retrieval, multilingual voice and farm memory are not connected in this prototype.</p></div></div>`}
 function sendChat(e){e.preventDefault();let input=$('#chatInput'),v=input.value.trim();if(!v)return;let box=$('#chatMessages');box.insertAdjacentHTML('beforeend',`<div class="bubble user">${escapeHtml(v)}</div><div class="bubble">Thanks for sharing. In the implemented version, I will use your farm context and trusted agricultural sources to help answer this. This prototype is not connected to an AI model yet.</div>`);input.value='';box.scrollTop=box.scrollHeight}
